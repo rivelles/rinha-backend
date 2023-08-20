@@ -51,7 +51,9 @@ class Handler(val pessoasR2DBCRepository: PessoasR2DBCRepository) {
     }
 
     fun fetchByExternalID(request: ServerRequest): Mono<ServerResponse> {
-        val pessoa = pessoasR2DBCRepository.findByExternalId(request.pathVariable("externalId"))
+        val externalId = request.pathVariable("externalId")
+        if (externalId.isEmpty()) return badRequest().build()
+        val pessoa = pessoasR2DBCRepository.findByExternalId(request.pathVariable(externalId))
         return pessoa.flatMap {
             it?.let {
                 val pessoaResponse = PessoaVM(
@@ -67,6 +69,7 @@ class Handler(val pessoasR2DBCRepository: PessoasR2DBCRepository) {
 
     fun fetchByTerm(request: ServerRequest): Mono<ServerResponse> {
         val term = request.queryParam("t")
+        if (term.isEmpty) return badRequest().build()
         val pessoasResponse = pessoasR2DBCRepository.fetchByTerm(term.orElse("")).map {
             PessoaVM(
                 apelido = it.apelido,
