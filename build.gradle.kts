@@ -28,6 +28,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
 	implementation("org.postgresql:r2dbc-postgresql")
 	implementation("org.postgresql:postgresql")
+	implementation("org.valiktor:valiktor-core:0.12.0")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("io.projectreactor:reactor-test")
 }

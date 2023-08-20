@@ -10,6 +10,8 @@ import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.ServerResponse.*
 import org.springframework.web.reactive.function.server.body
 import org.springframework.web.reactive.function.server.router
+import org.valiktor.functions.isNotNull
+import org.valiktor.validate
 import reactor.core.publisher.Mono
 import java.net.URI
 import java.util.UUID
@@ -32,10 +34,10 @@ class Handler(val pessoasR2DBCRepository: PessoasR2DBCRepository) {
         return pessoaMono.flatMap { pessoaRequest ->
             val pessoa = Pessoa(
                 externalId = UUID.randomUUID().toString(),
-                apelido = pessoaRequest.apelido,
-                nome = pessoaRequest.nome,
-                nascimento = pessoaRequest.nascimento,
-                stacks = pessoaRequest.stack.joinToString(",")
+                apelido = pessoaRequest.apelido.toString(),
+                nome = pessoaRequest.nome.toString(),
+                nascimento = pessoaRequest.nascimento.toString(),
+                stacks = pessoaRequest.stack?.joinToString(",") ?: ""
             )
             pessoasR2DBCRepository.save(pessoa).flatMap { savedRows ->
                 if (savedRows > 0L) created(URI.create("/pessoas/${pessoa.externalId}")).build()
@@ -75,4 +77,17 @@ class Handler(val pessoasR2DBCRepository: PessoasR2DBCRepository) {
     fun fetchCount(request: ServerRequest): Mono<ServerResponse> = ok().body(pessoasR2DBCRepository.count())
 }
 
-data class PessoaVM(val apelido: String, val nome: String, val nascimento: String, val stack: List<String>)
+data class PessoaVM(val apelido: Any?, val nome: Any?, val nascimento: Any?, val stack: List<Any?>?) {
+    init {
+        if (apelido == null || nome == null) throw UnprocessableEntityException("Apelido não pode ser nulo")
+
+        if (apelido !is String) throw IllegalArgumentException("Apelido deve ser uma string")
+        if (nome !is String) throw IllegalArgumentException("Nome deve ser uma string")
+        if (nascimento !is String) throw IllegalArgumentException("Nascimento deve ser uma string")
+        stack?.forEach {
+            stack -> if (stack !is String) throw IllegalArgumentException("Stack deve ser uma lista de strings")
+        }
+    }
+}
+
+class UnprocessableEntityException(message: String) : RuntimeException(message)
