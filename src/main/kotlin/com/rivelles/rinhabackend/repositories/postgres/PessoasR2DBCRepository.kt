@@ -36,7 +36,7 @@ class PessoasR2DBCRepository(val databaseClient: DatabaseClient) {
             .bind("apelido", pessoa.apelido)
             .bind("nome", pessoa.nome)
             .bind("nascimento", pessoa.nascimento)
-            .bind("stacks", pessoa.stacks)
+            .bind("stacks", pessoa.stacks ?: "")
             .fetch()
             .rowsUpdated()
     }

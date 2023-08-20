@@ -5,5 +5,5 @@ data class Pessoa(
     var apelido: String,
     var nome: String,
     var nascimento: String,
-    var stacks: String
+    var stacks: String?
 )
