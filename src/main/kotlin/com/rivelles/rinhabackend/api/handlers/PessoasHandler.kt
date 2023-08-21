@@ -14,6 +14,8 @@ import java.util.*
 
 @Component
 class PessoasHandler(val pessoasR2DBCRepository: PessoasR2DBCRepository) {
+    val inMemoryCache = mutableMapOf<String, Pessoa>()
+
     fun create(request: ServerRequest): Mono<ServerResponse> {
         val pessoaMono = request.bodyToMono(PessoaVM::class.java).doOnNext(PessoaVM::validate)
         return pessoaMono.flatMap { pessoaRequest ->
@@ -40,16 +42,18 @@ class PessoasHandler(val pessoasR2DBCRepository: PessoasR2DBCRepository) {
     fun fetchByExternalID(request: ServerRequest): Mono<ServerResponse> {
         val externalId = request.pathVariable("externalId")
         if (externalId.isEmpty()) return ServerResponse.badRequest().build()
-        val pessoa = pessoasR2DBCRepository.findByExternalId(request.pathVariable(externalId))
+
+        inMemoryCache[externalId]?.let { pessoa ->
+            val pessoaResponse = pessoa.toPessoaVM()
+            return ServerResponse.ok().bodyValue(pessoaResponse)
+        }
+
+        val pessoa = pessoasR2DBCRepository.findByExternalId(externalId)
         return pessoa.flatMap {
             it?.let {
-                val pessoaResponse = PessoaVM(
-                    apelido = it.apelido,
-                    nome = it.nome,
-                    nascimento = it.nascimento,
-                    stack = it.stacks?.split(",")
-                )
-                ServerResponse.ok().bodyValue(pessoaResponse)
+                inMemoryCache[externalId] = it
+
+                ServerResponse.ok().bodyValue(it.toPessoaVM())
             } ?: ServerResponse.notFound().build()
         }
     }
@@ -58,15 +62,17 @@ class PessoasHandler(val pessoasR2DBCRepository: PessoasR2DBCRepository) {
         val term = request.queryParam("t")
         if (term.isEmpty) return ServerResponse.badRequest().build()
         val pessoasResponse = pessoasR2DBCRepository.fetchByTerm(term.orElse("")).map {
-            PessoaVM(
-                apelido = it.apelido,
-                nome = it.nome,
-                nascimento = it.nascimento,
-                stack = it.stacks?.split(",")
-            )
+            it.toPessoaVM()
         }
         return ServerResponse.ok().body(pessoasResponse)
     }
 
     fun fetchCount(request: ServerRequest): Mono<ServerResponse> = ServerResponse.ok().body(pessoasR2DBCRepository.count())
+
+    fun Pessoa.toPessoaVM() = PessoaVM(
+        apelido = this.apelido,
+        nome = this.nome,
+        nascimento = this.nascimento,
+        stack = this.stacks?.split(",")
+    )
 }
