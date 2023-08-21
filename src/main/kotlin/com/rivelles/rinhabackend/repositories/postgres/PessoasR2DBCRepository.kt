@@ -8,14 +8,14 @@ import reactor.core.publisher.Mono
 
 @Repository
 class PessoasR2DBCRepository(val databaseClient: DatabaseClient) {
-    fun count(): Mono<Long> = databaseClient.sql("SELECT COUNT(*) as numero_pessoas FROM pessoas")
+    fun count() = databaseClient.sql("SELECT COUNT(*) as numero_pessoas FROM pessoas")
         .fetch()
         .one()
         .mapNotNull {
             it["numero_pessoas"]?.let { numeroPessoas -> numeroPessoas as Long } ?: 0
         }
 
-    fun findByExternalId(externalId: String): Mono<Pessoa?> = databaseClient.sql("SELECT * FROM pessoas WHERE external_id = :external_id")
+    fun findByExternalId(externalId: String) = databaseClient.sql("SELECT * FROM pessoas WHERE external_id = :external_id")
         .bind("external_id", externalId)
         .fetch()
         .one()
@@ -24,8 +24,7 @@ class PessoasR2DBCRepository(val databaseClient: DatabaseClient) {
             row.toPessoa()
         }
 
-    fun save(pessoa: Pessoa): Mono<Long> {
-        return databaseClient
+    fun save(pessoa: Pessoa) = databaseClient
             .sql {
                 """
                         INSERT INTO pessoas (external_id, apelido, nome, nascimento, stacks) 
@@ -39,9 +38,8 @@ class PessoasR2DBCRepository(val databaseClient: DatabaseClient) {
             .bind("stacks", pessoa.stacks ?: "")
             .fetch()
             .rowsUpdated()
-    }
 
-    fun fetchByTerm(term: String): Flux<Pessoa> = databaseClient.sql("SELECT * FROM PESSOAS WHERE TS @@ to_tsquery(:term) LIMIT 50")
+    fun fetchByTerm(term: String) = databaseClient.sql("SELECT * FROM PESSOAS WHERE TS @@ to_tsquery(:term) LIMIT 50")
         .bind("term", term)
         .fetch()
         .all()

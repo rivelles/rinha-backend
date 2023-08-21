@@ -4,11 +4,13 @@ import com.rivelles.rinhabackend.api.model.PessoaVM
 import com.rivelles.rinhabackend.api.model.UnprocessableEntityException
 import com.rivelles.rinhabackend.repositories.postgres.PessoasR2DBCRepository
 import com.rivelles.rinhabackend.repositories.postgres.entities.Pessoa
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.body
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import java.net.URI
 import java.util.*
 
@@ -33,6 +35,7 @@ class PessoasHandler(val pessoasR2DBCRepository: PessoasR2DBCRepository) {
         }.onErrorResume { error ->
             when (error) {
                 is UnprocessableEntityException -> ServerResponse.unprocessableEntity().build()
+                is DuplicateKeyException -> ServerResponse.unprocessableEntity().build()
                 is IllegalArgumentException -> ServerResponse.badRequest().build()
                 else -> ServerResponse.status(500).bodyValue(error.message ?: "Erro desconhecido")
             }
@@ -54,8 +57,8 @@ class PessoasHandler(val pessoasR2DBCRepository: PessoasR2DBCRepository) {
                 inMemoryCache[externalId] = it
 
                 ServerResponse.ok().bodyValue(it.toPessoaVM())
-            } ?: ServerResponse.notFound().build()
-        }
+            }
+        }.switchIfEmpty { ServerResponse.notFound().build() }
     }
 
     fun fetchByTerm(request: ServerRequest): Mono<ServerResponse> {
