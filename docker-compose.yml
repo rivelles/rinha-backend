@@ -1,48 +1,46 @@
 version: '3.5'
 
 services:
-#  api1:
-#    image: rivelles/rinhabackend:latest
-#    hostname: api1
-#    depends_on:
-#      - db
-#      - redis
-#    expose:
-#      - "80"
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: '0.25'
-#          memory: '0.4GB'
-#
-#  api2:
-#    image: rivelles/rinhabackend:latest
-#    hostname: api2
-#    depends_on:
-#      - db
-#      - redis
-#    expose:
-#      - "80"
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: '0.25'
-#          memory: '0.4GB'
-#
-#  nginx:
-#    image: nginx:latest
-#    volumes:
-#      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-#    depends_on:
-#      - api01
-#      - api02
-#    ports:
-#      - "9999:9999"
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: '0.2'
-#          memory: '0.5GB'
+  api1:
+    image: rinha-backend:latest
+    hostname: api1
+    depends_on:
+      - db
+    expose:
+      - "8080"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '0.4GB'
+
+  api2:
+    image: rinha-backend:latest
+    hostname: api2
+    depends_on:
+      - db
+    expose:
+      - "8080"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '0.4GB'
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api1
+      - api2
+    ports:
+      - "9999:9999"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: '0.5GB'
 
   db:
     image: postgres
