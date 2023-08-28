@@ -23,5 +23,7 @@ class PessoasApi(val handler: PessoasHandler) {
         GET("/pessoas/{externalId}", handler::fetchByExternalID)
         GET("/pessoas", handler::fetchByTerm)
         GET("/contagem-pessoas", handler::fetchCount)
+
+        GET("/_health") { ok().bodyValue("OK") }
     }
 }

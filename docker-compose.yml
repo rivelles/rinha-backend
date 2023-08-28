@@ -8,6 +8,12 @@ services:
       - db
     expose:
       - "8080"
+    healthcheck:
+      test: "curl --fail --silent localhost:8888/_health | grep OK || exit 1"
+      interval: 10s
+      timeout: 120s
+      retries: 20
+      start_period: 2s
     deploy:
       resources:
         limits:
@@ -21,6 +27,12 @@ services:
       - db
     expose:
       - "8080"
+    healthcheck:
+      test: "curl --fail --silent localhost:8888/_health | grep OK || exit 1"
+      interval: 10s
+      timeout: 120s
+      retries: 20
+      start_period: 2s
     deploy:
       resources:
         limits:
@@ -32,8 +44,10 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - api1
-      - api2
+      api1:
+        condition: service_healthy
+      api2:
+        condition: service_healthy
     ports:
       - "9999:9999"
     deploy:
