@@ -55,7 +55,7 @@ export default function () {
         });
 
         const response = http.post("http://nginx:9999/pessoas", payload, params);
-        check(response, { "status is 201": (r) => r.status === 201 });
+        check(response, { "Create pessoa: status is 201": (r) => r.status === 201 });
 
         if (response.status === 201) {
             locations.push(response.headers["Location"]);
@@ -65,12 +65,12 @@ export default function () {
     group('Get pessoa', () => {
         const response = http.get("http://nginx:9999"+locations[Math.floor(Math.random() * locations.length)], params);
 
-        check(response, { "status is 200": (r) => r.status === 200 });
+        check(response, { "Get pessoa: status is 200": (r) => r.status === 200 });
     });
 
     group('Search by term', () => {
         const response = http.get("http://nginx:9999/pessoas?t="+generateTerm(), params);
 
-        check(response, { "status is 200": (r) => r.status === 200 });
+        check(response, { "Search by term: status is 200": (r) => r.status === 200 });
     });
 };
